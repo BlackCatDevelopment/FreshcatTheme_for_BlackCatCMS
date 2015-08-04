@@ -82,7 +82,7 @@ jQuery(document).ready(function($){
                     if(typeof window.qtip !== undefined) {
                         $('[title!=""]').qtip({
                             content: {attr: 'title'},
-                            style  : {classes: 'qtip-light qtip-shadow qtip-rounded'},
+                            style  : {classes: 'qtip-light qtip-shadow qtip-rounded'}
                         });
                     }
                 }

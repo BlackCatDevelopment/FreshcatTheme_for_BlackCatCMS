@@ -633,7 +633,7 @@ jQuery(document).ready(function()
                     {
                         text: cattranslate('Cancel'),
                         click: function() { $(this).dialog("close"); }
-                    },
+                    }
                 ]
  			});
         $dialog.dialog('open');
