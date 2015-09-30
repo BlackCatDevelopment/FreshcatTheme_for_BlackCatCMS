@@ -1,3 +1,13 @@
+// we have to do this outside the dialog as cattranslate() may fail there
+var dlg_title      = cattranslate("Your session has expired!");
+var dlg_text       = cattranslate("Please enter your login details to log in again.");
+var txt_username   = cattranslate('Username');
+var txt_password   = cattranslate('Password');
+var txt_login      = cattranslate("Login");
+var txt_details    = cattranslate('Please enter your login details!');
+
+var sessionTimeoutDialog = false;
+
 function sessionTimedOutDialog()
 {
     $('#sessionTimeoutDialog').dialog('close').dialog('destroy');
@@ -27,24 +37,24 @@ function sessionTimedOutDialog()
     $('<div id="sessionTimedOutDialog"></div>')
         .html(
             '<span class="icon icon-warning" style="color:#c00;"></span> '+
-            cattranslate("Please enter your login details to log in again.")+
+            dlg_text+
             '<br /><br />'+
             '<div id="login_error_field" style="display:none;color:#c00;padding:5px;"></div><br /><br />'+
             '<form>'+
-            '<label for="username" class="fc_label_200">'+cattranslate('Username')+':</label>'+
+            '<label for="username" class="fc_label_200">'+txt_username+':</label>'+
             '<input type="text" name="username_'+username_field+'" id="username_'+username_field+'" /><br />'+
-            '<label for="pass" class="fc_label_200">'+cattranslate('Password')+':</label>'+
+            '<label for="pass" class="fc_label_200">'+txt_password+':</label>'+
             '<input type="password" name="password_'+password_field+'" id="password_'+password_field+'" /><br /><br />'
         ).dialog({
             modal: true,
             closeOnEscape: false,
             open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
-            title: cattranslate("Your session has expired!"),
+            title: dlg_title,
             width: 600,
             height: 300,
             buttons: [
                 {
-                    text: cattranslate("Login"),
+                    text: txt_login,
                     icons: {primary: "ui-icon-check"},
                     open: function() {
                         $(this).keypress(function(e) {
@@ -63,7 +73,7 @@ function sessionTimedOutDialog()
                             if($('#password_'+password_field).val() == '' ) {
                                 $('#password_'+password_field).css('border','1px solid #c00');
                             }
-                            $('#login_error_field').text(cattranslate('Please enter your login details!')).show();
+                            $('#login_error_field').text(txt_details).show();
                         }
                         else {
                             dates['username_'+username_field] = $('#username_'+username_field).val();
@@ -78,10 +88,11 @@ function sessionTimedOutDialog()
                                 {
                                     if(data.success===true) {
                                         $(_this).dialog('close').dialog('destroy');
-                                        sessionSetTimer(300);
+                                        sessionSetTimer(data.timer);
                                     }
                                     else {
-                                        $('#login_error_field').text(cattranslate(data.message)).show();
+                                        //$('#login_error_field').text(cattranslate(data.message)).show();
+                                        $('#login_error_field').text(data.message).show();
                                     }
                                 }
                             });
@@ -89,60 +100,12 @@ function sessionTimedOutDialog()
                     }
                 }
             ]
+        }).on('keyup', function(e){
+            if (e.keyCode == 13) {
+                $('.ui-button-text-icon-primary').click();
+            }
         });
     $('.ui-widget-overlay').css('background-image','none').css('background-color','#000').css('opacity','0.9');
-}
-
-function sessionTimeoutDialog()
-{
-    $('<div id="sessionTimeoutDialog"></div>')
-        .html('<span class="icon icon-warning"></span> '+cattranslate('You will be logged out in')+' <span id="fc_dlg_timer">10</span> '+cattranslate('seconds')+'.')
-        .dialog({
-            modal: true,
-            closeOnEscape: false,
-            title: cattranslate('Your session is about to expire!'),
-            width: 500,
-            height: 250,
-            buttons: [
-                {
-                    text: cattranslate("Keep me signed in"),
-                    icons: {primary: "ui-icon-check"},
-                    click: function() {
-                        $.ajax({
-                            type:     'POST',
-                            url:      CAT_ADMIN_URL + '/login/ajax_keepalive.php',
-                            dataType: 'json',
-                            cache:    false,
-                            data:     { _cat_ajax: 1 },
-                            success:  function( data, textStatus, jqXHR )
-                            {
-                                // result is ignored here
-                                sessionSetTimer(300);
-                            }
-                        });
-                        $(this).dialog('close').dialog('destroy');
-                    }
-                },
-                {
-                    text: cattranslate("Sign me out"),
-                    icons: {primary: "ui-icon-circle-close"},
-                    click: function() {
-                        $.ajax({
-                            type:     'POST',
-                            url:      CAT_ADMIN_URL + '/logout/index.php',
-                            dataType: 'json',
-                            cache:    false,
-                            data:     { _cat_ajax: 1 },
-                            success:  function( data, textStatus, jqXHR )
-                            {
-                                $(this).dialog('close').dialog('destroy');
-                                window.location.href = CAT_ADMIN_URL + '/login/index.php';
-                            }
-                        });
-                    }
-                }
-            ]
-        });
 }
 
 function sessionSetTimer(sesstime)
@@ -153,7 +116,6 @@ function sessionSetTimer(sesstime)
     timerId   = setInterval(function() {
         var secs = TimeStringToSecs(timer.text())-1;
         if(secs < 300)   { timer.parent().addClass('fc_gradient_red'); }
-        //if(secs == 30)   { sessionTimeoutDialog(); }
         if(secs == 5)    { $('#fc_dlg_timer').css('color','#c00'); }
         if(secs == 0)    { clearInterval(timerId); sessionTimedOutDialog(); }
         timer.text(toTimeString(secs));

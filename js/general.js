@@ -31,11 +31,14 @@ function TimeStringToSecs(hms) {
 
 if ( typeof jQuery != 'undefined' )
 {
+    $.ajaxPrefilter(function(options, originalOptions, jqXHR) {
+        jqXHR.originalRequestOptions = originalOptions;
+    });
     jQuery.ajaxSetup({
         error: function( jqXHR, textStatus, errorThrown )
         {
-            console.log( 'Status code: ' + jqXHR.status + " - Text status: " + textStatus + " - error: " + errorThrown );
-            //console.log(dump(jqXHR));
+            //console.log( 'Status code: ' + jqXHR.status + " - Text status: " + textStatus + " - error: " + errorThrown );
+            //console.log( 'Original options: ', jqXHR.originalRequestOptions);
             if (jqXHR.status === 0) {
                 alert('Not connected.\n Verify Network.');
             } else if (jqXHR.status == 404) {
